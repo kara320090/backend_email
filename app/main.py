@@ -179,46 +179,57 @@ def subscribe(payload: SubscribeRequest) -> SubscribeResponse:
             inserted_rows = inserted.data or []
             subscriber_id = int(inserted_rows[0]["id"])
 
-        current_matches = fetch_matches(region=region, min_discount=min_discount, limit=10)
         confirmation_sent = False
         instant_alert_count = 0
+        current_matches = []
 
-        send_subscription_email(
-            to_email=email,
-            subscriber_id=subscriber_id,
-            region=region,
-            min_discount=min_discount,
-            listings=current_matches,
-        )
-        confirmation_sent = True
+        try:
+            current_matches = fetch_matches(region=region, min_discount=min_discount, limit=10)
+        except Exception as exc:
+            print(f"[WARN] fetch_matches failed: {exc}")
 
-        if current_matches:
-            current_keys = [build_listing_key(item) for item in current_matches]
-            already_sent = get_existing_listing_keys(subscriber_id, current_keys)
+        try:
+            send_subscription_email(
+                to_email=email,
+                subscriber_id=subscriber_id,
+                region=region,
+                min_discount=min_discount,
+                listings=current_matches,
+            )
+            confirmation_sent = True
+        except Exception as exc:
+            print(f"[WARN] send_subscription_email failed: {exc}")
 
-            unsent_items = []
-            unsent_keys = []
+        try:
+            if current_matches:
+                current_keys = [build_listing_key(item) for item in current_matches]
+                already_sent = get_existing_listing_keys(subscriber_id, current_keys)
 
-            for item, key in zip(current_matches, current_keys):
-                if key not in already_sent:
-                    unsent_items.append(item)
-                    unsent_keys.append(key)
+                unsent_items = []
+                unsent_keys = []
 
-            if unsent_items:
-                send_alert_email(
-                    to_email=email,
-                    subscriber_id=subscriber_id,
-                    region=region,
-                    min_discount=min_discount,
-                    listings=unsent_items,
-                    subject="Immediate listing alert",
-                )
-                insert_alert_logs(subscriber_id, unsent_keys)
-                instant_alert_count = len(unsent_items)
+                for item, key in zip(current_matches, current_keys):
+                    if key not in already_sent:
+                        unsent_items.append(item)
+                        unsent_keys.append(key)
+
+                if unsent_items:
+                    send_alert_email(
+                        to_email=email,
+                        subscriber_id=subscriber_id,
+                        region=region,
+                        min_discount=min_discount,
+                        listings=unsent_items,
+                        subject="Immediate listing alert",
+                    )
+                    insert_alert_logs(subscriber_id, unsent_keys)
+                    instant_alert_count = len(unsent_items)
+        except Exception as exc:
+            print(f"[WARN] send instant alert failed: {exc}")
 
         return SubscribeResponse(
             ok=True,
-            message="Subscription saved and email sent.",
+            message="Subscription saved.",
             subscriber_id=subscriber_id,
             confirmation_sent=confirmation_sent,
             instant_alert_count=instant_alert_count,

@@ -1,6 +1,6 @@
 from html import escape
-
-import httpx
+from email.message import EmailMessage
+import smtplib
 
 from .config import settings
 from .security import create_unsubscribe_token
@@ -20,21 +20,17 @@ def build_unsubscribe_url(subscriber_id: int) -> str:
 
 
 def send_email(to_email: str, subject: str, html_content: str) -> None:
-    response = httpx.post(
-        "https://api.resend.com/emails",
-        headers={
-            "Authorization": f"Bearer {settings.resend_api_key}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "from": settings.mail_from,
-            "to": [to_email],
-            "subject": subject,
-            "html": html_content,
-        },
-        timeout=30.0,
-    )
-    response.raise_for_status()
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = settings.mail_from
+    msg["To"] = to_email
+    msg.set_content("HTML email only.")
+    msg.add_alternative(html_content, subtype="html")
+
+    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:
+        server.starttls()
+        server.login(settings.smtp_user, settings.smtp_pass)
+        server.send_message(msg)
 
 
 def render_listing_rows(listings: list[dict]) -> str:
