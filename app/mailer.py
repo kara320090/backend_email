@@ -1,6 +1,5 @@
 from html import escape
-from email.message import EmailMessage
-import smtplib
+import httpx
 
 from .config import settings
 from .security import create_unsubscribe_token
@@ -20,17 +19,28 @@ def build_unsubscribe_url(subscriber_id: int) -> str:
 
 
 def send_email(to_email: str, subject: str, html_content: str) -> None:
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = settings.mail_from
-    msg["To"] = to_email
-    msg.set_content("HTML email only.")
-    msg.add_alternative(html_content, subtype="html")
+    actual_recipient = settings.resend_test_recipient
 
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:
-        server.starttls()
-        server.login(settings.smtp_user, settings.smtp_pass)
-        server.send_message(msg)
+    response = httpx.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": f"Bearer {settings.resend_api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "from": settings.mail_from,
+            "to": [actual_recipient],
+            "subject": f"[TEST ONLY] {subject}",
+            "html": html_content + f"""
+            <hr style="margin-top:24px;">
+            <p style="font-size:12px;color:#666;">
+              Original requested recipient: {escape(str(to_email))}
+            </p>
+            """,
+        },
+        timeout=30.0,
+    )
+    response.raise_for_status()
 
 
 def render_listing_rows(listings: list[dict]) -> str:
@@ -97,7 +107,8 @@ def send_subscription_email(
     html = f"""
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
       <h2>Subscription created</h2>
-      <p>Your email alert subscription is now active.</p>
+      <p>This is running in owner-only Resend test mode.</p>
+      <p><strong>Requested recipient:</strong> {escape(to_email)}</p>
       <p><strong>Region:</strong> {escape(region)}</p>
       <p><strong>Minimum discount:</strong> {escape(str(min_discount))}%</p>
       <p>You will receive daily alert emails at 09:00 KST when new matching listings exist.</p>
@@ -131,7 +142,8 @@ def send_alert_email(
     html = f"""
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
       <h2>{escape(subject)}</h2>
-      <p>New matching listings were found.</p>
+      <p>This is running in owner-only Resend test mode.</p>
+      <p><strong>Requested recipient:</strong> {escape(to_email)}</p>
       <p><strong>Region:</strong> {escape(region)}</p>
       <p><strong>Minimum discount:</strong> {escape(str(min_discount))}%</p>
 

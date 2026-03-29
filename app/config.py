@@ -9,11 +9,9 @@ class Settings:
     supabase_service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
     friend_api_base_url: str = os.getenv("FRIEND_API_BASE_URL", "").strip().rstrip("/")
 
-    smtp_host: str = os.getenv("SMTP_HOST", "").strip()
-    smtp_port: int = int(os.getenv("SMTP_PORT", "587").strip() or "587")
-    smtp_user: str = os.getenv("SMTP_USER", "").strip()
-    smtp_pass: str = os.getenv("SMTP_PASS", "").strip()
-    mail_from: str = os.getenv("MAIL_FROM", "").strip()
+    resend_api_key: str = os.getenv("RESEND_API_KEY", "").strip()
+    mail_from: str = os.getenv("MAIL_FROM", "onboarding@resend.dev").strip()
+    resend_test_recipient: str = os.getenv("RESEND_TEST_RECIPIENT", "").strip().lower()
 
     app_base_url: str = os.getenv("APP_BASE_URL", "").strip().rstrip("/")
     backend_public_base_url: str = os.getenv("BACKEND_PUBLIC_BASE_URL", "").strip().rstrip("/")
@@ -27,11 +25,9 @@ class Settings:
             "SUPABASE_URL": self.supabase_url,
             "SUPABASE_SERVICE_ROLE_KEY": self.supabase_service_role_key,
             "FRIEND_API_BASE_URL": self.friend_api_base_url,
-            "SMTP_HOST": self.smtp_host,
-            "SMTP_PORT": str(self.smtp_port),
-            "SMTP_USER": self.smtp_user,
-            "SMTP_PASS": self.smtp_pass,
+            "RESEND_API_KEY": self.resend_api_key,
             "MAIL_FROM": self.mail_from,
+            "RESEND_TEST_RECIPIENT": self.resend_test_recipient,
             "BACKEND_PUBLIC_BASE_URL": self.backend_public_base_url,
             "CRON_SECRET": self.cron_secret,
             "UNSUBSCRIBE_SECRET": self.unsubscribe_secret,
