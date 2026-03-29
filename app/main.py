@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+ï»¿from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
@@ -41,7 +41,7 @@ def subscribe(payload: SubscribeRequest) -> SubscribeResponse:
     supabase = get_supabase()
 
     email = str(payload.email).strip().lower()
-    region = payload.region.strip() if payload.region.strip() else "ÀüÃ¼"
+    region = payload.region.strip() if payload.region.strip() else "ì „ì²´"
     min_discount = float(payload.min_discount)
 
     try:
@@ -70,7 +70,7 @@ def subscribe(payload: SubscribeRequest) -> SubscribeResponse:
 
             return SubscribeResponse(
                 ok=True,
-                message="±âÁ¸ ±¸µ¶À» ´Ù½Ã È°¼ºÈ­Çß½À´Ï´Ù.",
+                message="ê¸°ì¡´ êµ¬ë…ì„ ë‹¤ì‹œ í™œì„±í™”í–ˆìŠµë‹ˆë‹¤.",
                 subscriber_id=subscriber_id,
             )
 
@@ -92,7 +92,7 @@ def subscribe(payload: SubscribeRequest) -> SubscribeResponse:
 
         return SubscribeResponse(
             ok=True,
-            message="±¸µ¶ÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.",
+            message="êµ¬ë…ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.",
             subscriber_id=subscriber_id,
         )
 
@@ -121,9 +121,10 @@ def unsubscribe(payload: UnsubscribeRequest) -> UnsubscribeResponse:
 
         return UnsubscribeResponse(
             ok=True,
-            message="±¸µ¶ ÇØÁö°¡ Ã³¸®µÇ¾ú½À´Ï´Ù.",
+            message="êµ¬ë… í•´ì§€ê°€ ì²˜ë¦¬ë˜ì—ˆìŠµë‹ˆë‹¤.",
             updated=len(updated_rows),
         )
 
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"unsubscribe failed: {exc}") from exc
+

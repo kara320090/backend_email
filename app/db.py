@@ -1,4 +1,4 @@
-from supabase import Client, create_client
+﻿from supabase import Client, create_client
 from .config import settings
 
 _supabase_client: Client | None = None
@@ -15,3 +15,4 @@ def get_supabase() -> Client:
         )
 
     return _supabase_client
+

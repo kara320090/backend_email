@@ -1,9 +1,9 @@
-from pydantic import BaseModel, EmailStr, Field
+﻿from pydantic import BaseModel, EmailStr, Field
 
 
 class SubscribeRequest(BaseModel):
     email: EmailStr
-    region: str = Field(default="��ü", min_length=1, max_length=100)
+    region: str = Field(default="전체", min_length=1, max_length=100)
     min_discount: float = Field(default=0, ge=0, le=100)
 
 
@@ -22,3 +22,4 @@ class UnsubscribeResponse(BaseModel):
     ok: bool
     message: str
     updated: int = 0
+
